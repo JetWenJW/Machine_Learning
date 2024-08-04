@@ -1,159 +1,225 @@
-import pandas as pd                                     # 導入pandas，用於數據處理
-import os, zipfile                                      # 導入os和zipfile，用於文件和壓縮文件處理
-from sklearn.model_selection import train_test_split    # 導入train_test_split，用於劃分訓練和驗證數據
+import pandas as pd
+import os, zipfile
+from sklearn.model_selection import train_test_split
 
-def prepare_data():
+def prepareData():
     """ 
     讀入資料，並區分訓練資料與驗證資料
     Returns:
-        train_df(DataFrame): 從train取出用於訓練的資料 (90%)
-        validate_df(DataFrame): 從train取出用於驗證的資料 (10%)
+        train_df(DataFrame)   :從train取出用於訓練的資料 (90%)
+        validate_df(DataFrame):從train取出用於驗證的資料 (10%)
     """
-    data = ['train', 'test']                        # 定義需要解壓的數據集
-    path = './dogs-vs-cats-redux-kernels-edition/'  # 定義數據集路徑
+    # 將訓練資料跟測試資料解壓縮
+    # 解壓縮的zip檔名
+    data = ['train', 'test']
 
+    # 在當前的目錄解壓縮train.zip、test.zip
+    path = './dogs-vs-cats-redux-kernels-edition/'
     for el in data:
-        with zipfile.ZipFile(path + el +".zip", "r") as z:
-            z.extractall(".")                       # 解壓縮數據集
+        with zipfile.ZipFile(path + el + ".zip", "r") as z:
+            z.extractall(".")
 
-    filenames = os.listdir("./train/")              # 獲取訓練數據文件名列表
-    categories = []                                 # 初始化類別列表
-    for filename in filenames:
-        category = filename.split('.')[0]           # 根據文件名前綴確定類別
-        if category == 'dog':
-            categories.append(1)                    # 狗為1類
-        else:
-            categories.append(0)                    # 貓為0類
+    # 使用檔名dog.x.jpg、cat.x.jpg，建立標籤1與0 
+    # 取得train資料夾內的檔名，放入filenames
+    filenames = os.listdir("./train")
+    # 放置標籤的清單
+    categories = [] 
+    for filename in filenames: 
+        # 分割檔名、取出最前頭的元素(dog/cat)
+        # 將dog為1、cat為0設為標籤，放入category  
+        category = filename.split('.')[0] 
+        if category == 'dog': # 若為 dog，則加上標籤1  
+            categories.append(1) 
+        else: # 若為cat，則加上標籤0
+            categories.append(0)
 
-    df = pd.DataFrame({'filename': filenames, 'category': categories})  # 創建包含文件名和類別的DataFrame
-    
-    train_df, validate_df = train_test_split(df, test_size=0.1)         # 劃分訓練和驗證數據
-    train_df = train_df.reset_index()                                   # 重置訓練數據索引
-    validate_df = validate_df.reset_index()                             # 重置驗證數據索引
-    return train_df, validate_df                                        # 返回訓練和驗證數據
+    # 對df的列filename放入檔名filename
+    # 對列category放入標籤數值categories
+    df = pd.DataFrame({'filename': filenames,
+                       'category': categories})
 
-from tensorflow.keras.preprocessing.image import ImageDataGenerator     # 導入ImageDataGenerator，用於圖像數據增強
+    # 將訓練資料總數25000已隨機方式分割為90%跟10%、
+    # 90%為用於訓練的資料、10%為用於驗證的資料
+    train_df, validate_df = train_test_split(df, test_size=0.1)
+    # 重新配置列的索引
+    train_df = train_df.reset_index()
+    validate_df = validate_df.reset_index()
 
-def ImageDataGenrate(train_df, validate_df):
+    return train_df, validate_df
+
+
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator  # 從Keras導入ImageDataGenerator，用於圖像數據的增強和預處理
+
+def ImageDataGenerate(train_df, validate_df):
     """
     對圖像進行加工
     parameters:
-        train_df(DataFrame): 從train取出用於訓練的資料 (90%)
-        validate_df(DataFrame): 從train取出用於驗證的資料 (10%)
+        train_df(DataFrame)   : 從train取出用於訓練的資料(90%) 
+        validate_df(DataFrame): 從train取出用於驗證的資料(10%) 
     Returns: 
-        train(DirectoryIterator): 加工過後的訓練資料 
-        valid(DirectoryIterator): 加工過後的驗證資料 
-    """
-    img_width, img_height = 224, 224        # 定義圖像的寬度和高度
-    target_size = (img_width, img_height)   # 定義目標尺寸
-    batch_size = 16                         # 定義批次大小
-    x_col, y_col = 'filename', 'category'   # 定義特徵列和標籤列
-    class_mode = 'binary'                   # 定義分類模式為二分類
-    
+        train_generator(DirectoryIterator)     : 加工過後的訓練資料 
+        validation_generator(DirectoryIterator): 加工過後的驗證資料 
+    """ 
+    # 重新調整圖像尺寸
+    img_width, img_height = 224, 224            # 設定目標圖像的寬度和高度
+    target_size = (img_width, img_height)       # 定義圖像的目標尺寸
+    # 批次大小
+    batch_size = 16                             # 設定每個批次的圖像數量
+
+    # 檔名的欄位名稱，標籤的欄位名稱
+    x_col, y_col = 'filename', 'category'       # 設定DataFrame中存儲檔名和標籤的欄位名稱
+    # 設定flow_from_dataframe()的class_mode數值 
+    # 此範例為二元分類，設定值為'binary'
+    class_mode = 'binary'                       # 因為是二元分類問題，class_mode設為'binary'
+
+    # 建立Generator來加工圖像
     train_datagen = ImageDataGenerator(
-        rotation_range=15,          # 旋轉範圍
-        rescale=1. / 255,           # 將圖像像素值縮放到0~1之間
-        shear_range=0.2,            # 剪切強度
-        zoom_range=0.2,             # 縮放範圍
-        horizontal_flip=True,       # 水平翻轉
-        fill_mode='nearest',        # 填充模式
-        width_shift_range=0.1,      # 水平位移範圍
-        height_shift_range=0.1      # 垂直位移範圍
+        rotation_range=15,                      # 隨機旋轉圖像的角度範圍，15度內
+        rescale=1./255,                         # 將圖像像素值縮放到[0, 1]範圍
+        shear_range=0.2,                        # 隨機剪切的角度範圍
+        zoom_range=0.2,                         # 隨機縮放的範圍
+        horizontal_flip=True,                   # 隨機水平翻轉圖像
+        fill_mode='nearest',                    # 填充新出現的圖像區域，使用最接近的像素值
+        width_shift_range=0.1,                  # 隨機水平位移的範圍
+        height_shift_range=0.1                  # 隨機垂直位移的範圍
     )
+
+    # 因為沒有輸出層，故class_mode為None
+    train_generator = train_datagen.flow_from_dataframe(
+        dataframe=train_df,             # 輸入的訓練數據的DataFrame
+        directory="./train/",           # 圖像文件所在的目錄
+        x_col=x_col,                    # DataFrame中存儲圖像檔名的欄位名稱
+        y_col=y_col,                    # DataFrame中存儲標籤的欄位名稱
+        class_mode=None,                # 不需要生成標籤（僅圖像生成），所以設為None
+        target_size=target_size,        # 將圖像調整為目標尺寸
+        batch_size=batch_size,          # 設定批次大小
+        shuffle=False                   # 不打亂圖像順序（通常在預測時使用）
+    )
+
+    # 使用Generator產生加工完的驗證資料
+    valid_datagen = ImageDataGenerator(
+        rescale=1./255                      # 將圖像像素值縮放到[0, 1]範圍
+    )
+
+    # 使用Generator產生預處理的驗證資料
+    valid_generator = valid_datagen.flow_from_dataframe(
+        dataframe=validate_df,              # 輸入的驗證數據的DataFrame
+        directory="./train/",               # 圖像文件所在的目錄
+        x_col=x_col,                        # DataFrame中存儲圖像檔名的欄位名稱
+        y_col=y_col,                        # DataFrame中存儲標籤的欄位名稱
+        class_mode=None,                    # 不需要生成標籤（僅圖像生成），所以設為None
+        target_size=target_size,            # 將圖像調整為目標尺寸
+        batch_size=batch_size,              # 設定批次大小
+        shuffle=False                       # 不打亂圖像順序（通常在預測時使用）
+    )
+
+    # 傳回訓練資料與驗證資料
+    return train_generator, valid_generator  # 返回訓練和驗證數據生成器
+
+
+
+from tensorflow.keras.applications import VGG16     # 從TensorFlow的Keras應用中導入VGG16模型
+import numpy as np                                  # 導入NumPy，用於數值計算和處理
+
+def save_VGG16_outputs(train, valid):
+    '''
+    將訓練資料、驗證資料輸入VGG16
+    並將兩者的輸出儲存為 npy檔
+
+    parameters:
+    train(DataFrameIterator): 預處理完成的訓練資料
+    valid(DataFrameIterator): 預處理完成的驗證資料
+    '''
+    # 取得圖像尺寸
+    image_size = len(train[0][0][0])            # 從訓練資料生成器的第一個批次中獲取圖像的尺寸
+    # 將輸入資料的形狀改為Tuple
+    input_shape = (image_size, image_size, 3)   # 定義VGG16模型所需的輸入形狀，這裡假設圖像大小一致
+
+    # 讀入VGG16模型與預學習之參數
+    model = VGG16(include_top = False,          # 不包含VGG16模型的全連接層
+                  weights = 'imagenet',         # 使用在ImageNet上預訓練的權重
+                  input_shape = input_shape)    # 定義模型的輸入形狀
+    #顯示 VGG16概要
+    model.summary()  # 輸出模型的架構摘要
+
+    # 將訓練資料輸入VGG16模型
+    vgg16_train = model.predict(train,                  # 使用訓練數據生成器進行預測
+                                steps = len(train),     # 設定步數為生成器的總步數
+                                verbose = 1)            # 設定日誌輸出詳情
+
+    # 儲存訓練資料的輸出結果
+    np.save('vgg16_train.npy', vgg16_train)             # 將訓練資料的預測結果儲存為NumPy檔案
+
+    # 將驗證資料輸入VGG16模型
+    vgg16_test = model.predict(valid,                   # 使用驗證數據生成器進行預測
+                               steps = len(valid),      # 設定步數為生成器的總步數
+                               verbose = 1)             # 設定日誌輸出詳情
+
+    # 儲存驗證資料的輸出結果
+    np.save('vgg16_test.npy', vgg16_test)               # 將驗證資料的預測結果儲存為NumPy檔案
+
+
+import numpy as np
+from keras.models import Sequential
+from keras import optimizers
+from keras.layers import Dropout, GlobalMaxPooling2D, Dense
+
+def train_FClayer(train_labels, validation_labels):
+    '''
+    將VGG16的輸出放入自創的FC層進行學習
+    parameters:
+        train_labels(int的list)   : 訓練資料的正確答案標籤
+        validate_labels(int的list): 驗證資料的正確答案標籤
+    '''
+    # 將VGG16的訓練資料輸出讀入NumPy序列
+    train_data = np.load('vgg16_train.npy')
+    # 將VGG16的驗證資料輸出讀入NumPy序列
+    validation_data = np.load('vgg16_test.npy')
     
-    train_df['category'] = train_df['category'].astype(str)  # 將訓練數據的類別轉換為字符串
-    train = train_datagen.flow_from_dataframe(
-        train_df,                       # 輸入訓練數據DataFrame
-        "./train/",                     # 訓練數據目錄
-        x_col=x_col,                    # 特徵列
-        y_col=y_col,                    # 標籤列
-        class_mode=class_mode,          # 分類模式
-        target_size=target_size,        # 圖像目標尺寸
-        batch_size=batch_size,          # 批次大小
-        shuffle=False                   # 不進行隨機打亂
-    )
-    
-    valid_datagen = ImageDataGenerator(rescale=1. / 255)            # 只進行縮放操作的驗證數據增強
-    validate_df['category'] = validate_df['category'].astype(str)   # 將驗證數據的類別轉換為字符串
+    # 製作自創的神經網路結構 
+    model = Sequential() 
+    # 對四維張量(batch_size, rows, cols, channels)套用池化演算法後
+    # 拉平為二維張量(batch_size, channels) 
+    model.add(GlobalMaxPooling2D()) 
+    # 全連接層 
+    model.add(Dense(512,                # 神經元數為 512
+                    activation='relu')) # 激活函數為 ReLU
+    # 丟棄率50%
+    model.add(Dropout(0.5))
 
-    valid = valid_datagen.flow_from_dataframe(
-        validate_df,                # 輸入驗證數據DataFrame
-        "./train/",                 # 驗證數據目錄
-        x_col=x_col,                # 特徵列
-        y_col=y_col,                # 標籤列
-        class_mode=class_mode,      # 分類模式
-        target_size=target_size,    # 圖像目標尺寸
-        batch_size=batch_size,      # 批次大小
-        shuffle=False               # 不進行隨機打亂
-    )
-    return train, valid             # 返回加工過的訓練和驗證數據
+    # 輸出層
+    model.add(Dense(1,                     # 神經元數為 1
+                    activation='sigmoid')) # 激活函數為Sigmoid
 
-from tensorflow.keras.models import Sequential                          # 導入Sequential，用於創建序列模型
-from tensorflow.keras.layers import Dense, Dropout, GlobalMaxPooling2D  # 導入層，用於構建模型
-from tensorflow.keras import optimizers                                 # 導入優化器
-from tensorflow.keras.applications import VGG16                         # 導入VGG16預訓練模型
-from tensorflow.keras.callbacks import LearningRateScheduler            # 導入LearningRateScheduler，用於調整學習率
-import math  # 導入math，用於數學運算
+    # 模型編譯
+    model.compile(loss='binary_crossentropy',
+                  optimizer=optimizers.RMSprop(learning_rate = 1e-5), # 學習率為預設值的1/100
+                  metrics=['accuracy'])
 
-def train_FClayer(train_generator, validation_generator):
-    """
-    使用完成微調的VGG16進行訓練
-    Returns: history(History物件)
-    """
-    image_size = len(train_generator[0][0][0])                  # 獲取圖像尺寸
-    input_shape = (image_size, image_size, 3)                   # 定義輸入形狀
-    batch_size = len(train_generator[0][0])                     # 獲取批次大小
-    total_train = len(train_generator) * batch_size             # 計算總訓練樣本數
-    total_validate = len(validation_generator) * batch_size     # 計算總驗證樣本數
+    # 訓練模型
+    epoch = 20      # 訓練週期
+    batch_size = 16 # 批次大小
+    history = model.fit(train_data,   # 訓練資料
+                        train_labels, # 訓練資料正確答案
+                        epochs=epoch,
+                        batch_size=batch_size,
+                        verbose=1,
+                        # 驗證資料與正確答案
+                        validation_data=(validation_data,
+                                         validation_labels))
 
-    pre_trained_model = VGG16(
-        include_top=False,          # 不包含全連接層
-        weights='imagenet',         # 使用ImageNet數據集的預訓練權重
-        input_shape=input_shape     # 定義輸入形狀
-    )
+    # 傳回history
+    return history
 
-    for layer in pre_trained_model.layers[:15]:
-        layer.trainable = False                 # 凍結前15層
-    for layer in pre_trained_model.layers[15:]:
-        layer.trainable = True                  # 解凍剩餘層
-    
-    model = Sequential()                        # 創建序列模型
-    model.add(pre_trained_model)                # 添加預訓練模型
-    model.add(GlobalMaxPooling2D())             # 添加全局最大池化層
-    model.add(Dense(512, activation='relu'))    # 添加全連接層，使用ReLU激活函數
-    model.add(Dropout(0.5))                     # 添加Dropout層，防止過擬合
-    model.add(Dense(1, activation='sigmoid'))   # 添加輸出層，使用Sigmoid激活函數
 
-    model.compile(
-        loss='binary_crossentropy',                         # 使用二元交叉熵損失函數
-        optimizer=optimizers.RMSprop(learning_rate=1e-5),   # 使用RMSprop優化器
-        metrics=['accuracy']                                # 設置評估指標為準確率
-    )
+train_df, validate_df = prepareData()
+train, valid = ImageDataGenerate(train_df, validate_df)
+save_VGG16_outputs(train, valid)
 
-    model.summary()  # 輸出模型摘要
+train_labels = np.array(train_df['category'])
+# 取得驗證資料的正確答案
+validation_labels = np.array(validate_df['category'])
+# 執行訓練模型
+history = train_FClayer(train_labels,validation_labels)
 
-    def step_decay(epoch):
-        initial_lrate = 0.00001     # 初始學習率
-        drop = 0.5                  # 衰減率
-        epochs_drop = 10.0          # 衰減週期
-        lrate = initial_lrate * math.pow(drop, math.floor((epoch) / epochs_drop))  # 計算學習率
-        return lrate
-    
-    lrate = LearningRateScheduler(step_decay)  # 創建學習率調度器
-
-    epochs = 40             # 設置訓練週期數
-    history = model.fit(
-        train_generator,    # 訓練數據生成器
-        epochs=epochs,      # 訓練週期數
-        validation_data=validation_generator,               # 驗證數據生成器
-        validation_steps=total_validate // batch_size,      # 驗證步數
-        steps_per_epoch=total_train // batch_size,          # 每個訓練週期的步數
-        verbose=1,                                          # 設置輸出詳情等級
-        callbacks=[lrate]                                   # 設置回調函數
-    )
-    return history  # 返回訓練歷史
-
-# 實際應用
-train_df, validate_df = prepare_data()                  # 準備數據
-train, valid = ImageDataGenrate(train_df, validate_df)  # 生成訓練和驗證數據
-history = train_FClayer(train, valid)                   # 訓練模型

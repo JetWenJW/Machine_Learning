@@ -27,3 +27,7 @@ train_datagen 生成器來從 DataFrame 中讀取圖像文件，並生成增強�
 => 注意:ImageDataGenerator和flow是互相搭配的，
     當我們設定完ImageDataGenerator一定要用flow生成  
     或flow_from_dataframe生成，功能類是指是使用場景不同。
+
+5. 第210行中:
+=> EarlyStopping 是 Keras 提供的一個回調函數，
+    用於在模型訓練過程中監控指標，並在訓練過程中達到某些條件時提前終止訓練。
