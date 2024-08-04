@@ -1,0 +1,17 @@
+這個檔案包含09_Data_Augmentation.py所有細節:
+
+
+1. 第39行中: "g = datagen.flow(tr_x, tr_y, batch_size=batch_size, shuffle=False)"
+=> flow 方法用於生成批次數據。
+    它可以從 Numpy 數組或數據框架生成數據批次，並進行實時的數據增強。
+=> shuffle：是否在每個 epoch 開始時打亂數據。默認為 True。
+
+
+
+
+
+
+
+
+
+

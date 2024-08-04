@@ -1,0 +1,10 @@
+這個檔案包含10_Data_Augmentation_Train.py所有細節:
+
+
+單純結合05 ~ 09的內容訓練模型。
+05 = CNN
+06 = CNN 建立模型
+07 = 加入Pooling並使用hyperopt調整最佳化超參數。
+08 = 利用07調出來的最佳化超參數訓練CNN Model。
+09 = 示範Data Augumentation操作使用透過ImageDataGenerator。
+結合以上完成完整的CNN 圖像分析訓練。

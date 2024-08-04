@@ -1,0 +1,39 @@
+這個檔案包含16_Ensemble.py所有細節:
+
+1. 第27行中: "X_train = (X_train - mean) / (std + 1e-7)"
+=> 是將x_train進行標準會計算，1e-7是為了防止出現分母為零的狀況。
+
+2. 第31行中: 
+=> np.ravel 是 NumPy 中的一個函數，用於將多維數組展平（flatten），即將多維數組轉換為一維數組。
+
+3. One-Hot Encoding 是將類別標籤轉換為二進制向量的技術。
+=> 這種技術通常應用於分類任務中的標籤（y），而不是特徵（x）。
+    代表的是輸出的種類。
+
+4. 第75 ~ 80行中:
+=> 先把要進行預測的輸入數據(X)，初始化
+=> pred_labels[預測結果, 模型編號]
+=> 在79行中: 取預測結果最大值，因為輸出為Softmax
+    就代表模型預測結果。
+=> 最終，第80行:返回每一個model的預測值，以array(pred_labels)表示。
+    而mode 是 SciPy 庫中的一個函數，用於計算數據中的眾數（即最常見的值）
+    也就是5個模型多數決概念。
+
+5. 第99行中:
+=> History 回調會保存每個訓練周期（epoch）結束時的損失值和度量指標（如準確率）
+=> 主要是為了Callback函式。
+
+6. 第100行中: "cpont = Checkpoint(train_model, f'weights_{i}.h5')"
+=> 執行Callback(Checkpoint)，保存weight
+
+7. 第126 ~ 134行中:
+=> 希望在集成(Ensemble)時不要更新weight，
+    所以凍結神經層的動作是在執行集成(Ensemble)以前執行。
+=> 是從第129 ~ 134行，才開始進行集成(Ensemble)動作。
+=> 第133行，是把集成(Ensemble)結果加到哈希表中。
+
+8. 第136行中: "history_all['corrcoef'] = np.corrcoef(model_predict, rowvar = False)"
+=> np.corrcoef()是Numpy 的API函式，用來計算相關係數。
+=> "model_predict"，是目標array。
+=> 其中，"rowvar = False" ，是計算model_predict行跟行之間的相關係數。
+=> 如果是 "rowvar = True"，是計算model_predict列跟列之間的相關係數。

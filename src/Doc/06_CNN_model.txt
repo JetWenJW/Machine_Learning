@@ -1,0 +1,7 @@
+這個檔案包含06_CNN_model.py所有細節:
+
+單純展示CNN在tensorflow中API使用方式。
+
+
+
+

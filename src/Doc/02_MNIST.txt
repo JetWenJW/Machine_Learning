@@ -1,0 +1,26 @@
+這個檔案包含02_MNIST.py所有細節:
+
+1. 第7 ~ 9行中:
+使用 os.walk 方法遍歷 ./digit-recognizer 目錄。
+回傳:
+    a. dirname: 當前遍歷到的目錄路徑
+    b. _: 當前目錄下的子目錄列表（此處未使用）
+    c. filenames: 當前目錄下的文件列表
+=>而os.path.join 是 os.path 模組中的一個函數，用於將多個路徑組合成一個路徑。
+=>os.path.join(dirname, filename) 會將 dirname 和 filename 拼接成一個完整的路徑。
+
+2. 第24行中:
+axis = 1 表示按列進行刪除操作。如果設置為 axis = 0，則按行進行刪除。
+
+3. 第32行中: "tr_idx, va_idx = list(kf.split(train_x))[0]"
+split(train_x) 方法將 train_x 數據集按照 K 折交叉驗證的方式進行劃分。
+=>會回傳劃分完的結果索引，訓練索引(tr_idx)，驗證索引(va_idx)
+=>最後的[0]表示編號0號的fold(一共4個fold，編號為0 ~ 4號)
+
+4. 第100行中:
+argmax 是 numpy 函數，用來返回沿指定軸的最大值的索引。
+
+5. 第108行中:
+submit_df.head()為提交檔案(submit_df)的前5筆資料
+=>若submit_df.head(10)，則為前10筆資料
+

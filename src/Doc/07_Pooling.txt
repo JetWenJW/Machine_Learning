@@ -1,0 +1,8 @@
+這個檔案包含07_Pooling.py所有細節:
+
+1. 單存使用類似03_Hyperopt.py的方式去調教超參數Hyperparameters。
+
+
+
+
+

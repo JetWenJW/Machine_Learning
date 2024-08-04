@@ -1,0 +1,43 @@
+這個檔案包含14_CLR.py所有細節:
+
+所謂Callback就是在特定時機執行特定代碼。
+也就是說Callback需要自己設定時機，需要自己設定代碼。
+(***注意:model.fit()中的callback list就是執行的代碼段。)
+
+1. 第86 ~ 96行中:
+=> def__init__是自定義Callback時，且需要進行特殊的設置或初始化
+    就需要自己編寫。
+=> 若沒有特別需求Python會自動調用 __init__ 方法來初始化對象
+
+2. 第98 ~ 108行中:
+=> 設定了3種不同學習率衰減模式。
+
+3. 第110 ~ 120行中:
+=> 計算當下(on_train_begin，on_batch_end)學習率
+
+4. 第122 ~ 130行中:
+=> 訓練開始時初始化學習率。
+
+5. 第132 ~ 143行中:
+=> 每個批次結束時更新學習率。
+
+
+6. 第130行: "backend.set_value(self.model.optimizer.lr, self.clr())"
+=> backend: 這是 TensorFlow/Keras 中的一個模組，用於提供一些底層操作的接口。
+    它允許你進行更底層的操作，例如:(獲取)和(設置)張量的值。
+=> set_value: 這是一個方法，用來設置張量的值。
+    它接受兩個參數：一個是要設置的張量，另一個是要設置的值。
+
+
+7. 第139行: "self.history.setdefault('learning_rate', []).append(backend.get_value(self.model.optimizer.lr))" 
+=> self.model: 指的是當下的模型。
+=> self.model.optimizer: 指的是當下模型的優化器。
+=> self.model.optimizer.lr: 指的是當下模型的優化器所使用的學習率。
+
+***setdefault(key, default): 這是一個字典的方法。它的作用是：
+=> 如果字典中已經存在 key，則返回對應的值。
+=> 如果字典中不存在 key，則將 key 設置為 default，並返回 default。
+    ->在這裡，self.history.setdefault('learning_rate', []) 的作用是確保字典中有一個名為 'learning_rate' 的鍵。
+    ->如果該鍵已經存在，它會返回對應的值；如果該鍵不存在，它會將 self.history['learning_rate'] 設置為一個空列表 []。
+(**補充一點:字典就是哈希表)
+

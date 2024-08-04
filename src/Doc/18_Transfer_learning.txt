@@ -1,0 +1,29 @@
+這個檔案包含18_Transfer_learning.py所有細節:
+
+
+1. 第15 ~ 20行中:
+
+
+2. 第29 ~ 34行中:
+=> split('.')[0]，[0] 表示選取 split 後生成的列表的第一個元素。
+    這個元素通常是文件名中標識類別的部分。
+    例如:對於 filename = 'dog.1234.jpg'，filename.split('.')[0] 的結果是 'dog'。
+    例如:對於 filename = 'cat.5678.png'，filename.split('.')[0] 的結果是 'cat'。
+
+
+3. 第72 ~ 73行中:
+.reset_index() 方法的功能是重置 DataFrame 的索引，
+即將當前索引變成一個普通列，並使用一個新的整數索引（0, 1, 2, …）來替換原有的索引。
+
+
+4. 第103 ~ 111行中:
+train_datagen 生成器來從 DataFrame 中讀取圖像文件，並生成增強後的圖像數據和對應的標籤，用於模型的訓練。
+=> 其中"flow_from_dataframe"方法用於從 Pandas DataFrame 生成增強後的圖像數據。
+    這適用於當你的數據以 DataFrame 的形式存儲時。以下是 flow_from_dataframe 方法的主要特點：
+    數據來源：需要將圖像文件名和標籤存儲在 Pandas DataFrame 中，並指定圖像所在的目錄。
+=> 補充一點，我們也常常用"flow"用於直接從 NumPy 數組生成增強後的圖像數據。
+    這適用於當你的數據已經以 NumPy 數組形式存在時。
+
+=> 注意:ImageDataGenerator和flow是互相搭配的，
+    當我們設定完ImageDataGenerator一定要用flow生成  
+    或flow_from_dataframe生成，功能類是指是使用場景不同。

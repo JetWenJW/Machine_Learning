@@ -1,0 +1,28 @@
+這個檔案包含03_Hyperopt.py所有細節:
+
+
+1.Trials() 是 Hyperopt 庫中的一個類，用來記錄超參數搜索過程中每次評估的結果。
+=> Trials() 物件會自動嘗試space中所有選項，並記錄下來。
+
+
+2. 第56 ~ 63行中:
+space = {
+    'units': hp.choice('units', [500, 784]),                    # 隱藏層單元數選項
+    'layers': hp.choice('layers', ['none', 'one', 'two']),      # 隱藏層層數選項
+    'units_2': hp.choice('units_2', [100, 200]),                # 第二隱藏層單元數選項
+    'units_3': hp.choice('units_3', [25, 50]),                  # 第三隱藏層單元數選項
+    'optimizer': hp.choice('optimizer', ['adam', 'rmsprop'])    # 優化器選項
+}
+
+提供了很多選項，這些選擇不是人為選擇是機器自己選擇，會自動找到最佳Hyperparameter
+透過print(best_run)，輸出結果如下:
+{'layers': 1, 'optimizer': 1, 'units': 1, 'units_2': 1, 'units_3': 0}
+
+
+3. 第79 ~ 88行中:
+=>遍歷 Trials 物件中的每一個 trial，trials.trials 是所有試驗的結果列表
+=>檢查 trial 中是否有 'result' 鍵，且 'result' 中是否有 'loss' 鍵，
+=>並且結果狀態為 STATUS_OK（表示試驗完成且結果有效）
+=>  簡單來說，這是一個演算法，用來找trials.trials中最佳模型，
+    過程中會不段更新最佳模型的變數，直到遍歷完所有trials.trials紀錄。
+

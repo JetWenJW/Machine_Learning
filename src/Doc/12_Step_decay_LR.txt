@@ -1,0 +1,29 @@
+這個檔案包含12_Step_decay_LR.py所有細節:
+
+整個程式碼，實現自動遞減Learning_Rate的方法，以因應不同訓練需求。
+
+
+1. 第62 ~ 72行中:
+=> 定義了一個名為 LRHistory 的類，繼承自 Callback 類。
+=> 繼承意味著 LRHistory 類可以使用 Callback 類的所有屬性和方法。
+=> def on_train_begin(self, batch, logs={})：
+       在訓練開始時調用的方法，用於初始化準確率和學習率列表。
+=> def on_epoch_end(self, batch, logs={})：
+       在每個 epoch 結束時調用的方法，用於記錄當前的準確率和學習率。
+=> self.acc.append(logs.get('accuracy'))：
+       從 logs 中獲取當前 epoch 的準確率，並添加到 self.acc 列表中。
+=> self.lr.append(step_decay(len(self.acc)))：
+       計算當前 epoch 的學習率，並添加到 self.lr 列表中。
+
+2. 第81行中: "lrate = initial_lrate * math.pow(drop, math.floor((epoch) / epochs_drop))"
+A. math.floor((epoch) / epochs_drop)：
+    將比值向下取整，以得到整數部分，表示已經經過了多少個完整的衰減間隔。
+B. math.pow(drop, math.floor((epoch) / epochs_drop))：
+    計算 drop 的冪次，冪次為經過的完整衰減間隔數，這一步得到的是一個衰減因子。
+
+3. 第90行: "lrate = LearningRateScheduler(step_decay)"
+=> LearningRateScheduler 是 Keras 提供的一個回調函數，用於在訓練過程中更新學習率。
+     它允許你根據自定義的調度策略來動態調整學習率。
+
+4. 第91行: "call_backs_list = [lr_history, lrate]"
+=> 創建一個回調列表，該列表包含了多個回調對象，
