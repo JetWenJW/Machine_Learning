@@ -1,0 +1,11 @@
+這個檔案包含23_RNN_Ensemble.py所有細節:
+
+
+
+1. 第455 ~ 468行中:
+=> 使用了Ensemble的技術
+    透過Ridge()模型，RidgeCV()模型，RNN模型來實現集成(Ensemble)效果。
+    
+=> RidgeCV 是一種基於 L2 正則化的線性回歸模型，
+    它通過交叉驗證來選擇最佳的正則化參數（即 Ridge 迴歸中的 alpha）。
+
